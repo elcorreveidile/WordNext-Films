@@ -25,7 +25,7 @@ grep -q 'viewBox="-62.14' "$MAC" || { echo "error: unexpected viewBox in $SVG" >
 
 render() { resvg -w "$2" -h "$2" "$1" "$3" </dev/null; }
 
-render "$SVG" 1024 "$DIR/wordnext-films-1024.png"
+render "$SVG" 1024 "$DIR/filmcraft-1024.png"
 # Runtime window/Dock icon on macOS (apps/filmcraft/src/main.rs embeds it).
 render "$MAC" 512 "$DIR/filmcraft-macos-512.png"
 
@@ -46,7 +46,24 @@ for s in 16 20 24 32 40 48 64 128 256; do
   render "$SVG" "$s" "$TMP/ico-$s.png"
   ICO_PNGS+=("$TMP/ico-$s.png")
 done
-(cd "$ROOT" && cargo run -q -p xtask -- ico "$DIR/filmcraft.ico" "${ICO_PNGS[@]}")
+if command -v cargo >/dev/null && [ -z "${ICONS_PYTHON:-}" ]; then
+  (cd "$ROOT" && cargo run -q -p xtask -- ico "$DIR/filmcraft.ico" "${ICO_PNGS[@]}")
+else
+  # PNG-compressed .ico written by python3 (set ICONS_PYTHON=1 to force it).
+  python3 - "$DIR/filmcraft.ico" "${ICO_PNGS[@]}" <<'PY'
+import struct, sys
+out, pngs = sys.argv[1], sys.argv[2:]
+blobs = [open(p, "rb").read() for p in pngs]
+head = struct.pack("<HHH", 0, 1, len(blobs))
+off = 6 + 16 * len(blobs)
+ents = b""
+for b in blobs:
+    w, h = struct.unpack(">II", b[16:24])
+    ents += struct.pack("<BBBBHHII", w % 256, h % 256, 0, 0, 1, 32, len(b), off)
+    off += len(b)
+open(out, "wb").write(head + ents + b"".join(blobs))
+PY
+fi
 
 # macOS .icns.
 if command -v iconutil >/dev/null; then
@@ -58,6 +75,19 @@ if command -v iconutil >/dev/null; then
   done
   iconutil -c icns -o "$DIR/filmcraft.icns" "$SET"
 else
-  echo "warning: iconutil not found (macOS only); filmcraft.icns not regenerated" >&2
+  # .icns written by python3: PNG-compressed entries (ic07..ic10, ic11..ic14).
+  python3 - "$DIR/filmcraft.icns" "$MAC" <<'PY'
+import struct, subprocess, sys, tempfile, os
+out, svg = sys.argv[1], sys.argv[2]
+kinds = [(b"ic07", 128), (b"ic08", 256), (b"ic09", 512), (b"ic10", 1024), (b"ic11", 32), (b"ic12", 64), (b"ic13", 256), (b"ic14", 512)]
+body = b""
+for tag, px in kinds:
+    with tempfile.TemporaryDirectory() as d:
+        f = os.path.join(d, "i.png")
+        subprocess.run(["resvg", "-w", str(px), "-h", str(px), svg, f], check=True, stdin=subprocess.DEVNULL)
+        data = open(f, "rb").read()
+    body += tag + struct.pack(">I", len(data) + 8) + data
+open(out, "wb").write(b"icns" + struct.pack(">I", len(body) + 8) + body)
+PY
 fi
 echo "icons written to $DIR"

@@ -40,7 +40,6 @@ Kept as they were (internal names, changing them is a separate step):
   names inside the macOS bundle.
 - The Windows install folder (`Program Files\FilmCraft`, which the shared CI install test expects),
   the settings folders and the Windows registry key names.
-- The app icon (original work released under MIT OR Apache-2.0, see `assets/app-icon/`).
 
 ## Status of the rebrand
 
@@ -48,6 +47,7 @@ Kept as they were (internal names, changing them is a separate step):
 - [x] Links: no Discord button, no ArtCraft site link; Help menu points at WordNext and this fork
 - [x] About dialog, Home screen, header: no ArtCraft marks (the wordmark is no longer embedded)
 - [x] README and WORDNEXT.md
+- [x] Own app icon: the WordNext monogram on a film frame (`assets/app-icon/`), replacing the upstream owl
 - [x] Spanish (Spain, tuteo) catalogue complete; the app follows the system language
 - [x] Web page (es/en) and browser build: `vercel.json`, `packaging/vercel/`; Vercel project + domain `films.wordnext.tech` still to connect
 - [x] Desktop installers workflow `.github/workflows/instaladores.yml` (signs when the secrets exist, unsigned otherwise; publishes on a `v*` tag)

@@ -1,8 +1,8 @@
 asset:        tech.wordnext.films.png
-title:        FilmCraft app icon, Linux hicolor theme 48 px
-author:       Brandon Thomas (FilmCraft owner), for the FilmCraft project
-source:       original work (drawn by the owner in ArtCraft, then vectorised)
+title:        WordNext Films app icon (the WordNext monogram on a film frame)
+author:       WordNext
+source:       original work by WordNext (the WordNext monogram, wordnext.tech), replacing the upstream FilmCraft icon in this fork
 license:      MIT OR Apache-2.0
 license-file: assets/app-icon/LICENSE.txt
-added:        2026-10-02 by Claude (agent) for Brandon Thomas
-notes:        Rendered from filmcraft.svg with resvg by packaging/icons.sh.
+added:        2026-10-16 by Claude (agent) for WordNext
+notes:        Rendered from assets/app-icon/filmcraft.svg with packaging/icons.sh. Green gradient #008a4b to #38b06a, 512 viewBox, rx=112. See assets/app-icon/README.md.
