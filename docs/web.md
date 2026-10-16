@@ -33,7 +33,7 @@ URL flags: `?empty` (no demo project), `?norecover` (don't reopen the auto-saved
 the page reloads with it when WebGPU is present but fails to start), `?nowebcodecs` (decode with
 FilmCraft's own decoders only).
 
-If the app panics after start-up (or runs out of memory), `index.html` shows a "FilmCraft stopped
+If the app panics after start-up (or runs out of memory), `index.html` shows a "WordNext Films stopped
 working" overlay with the panic message and a Reload button instead of a frozen canvas, and sets
 `window.filmcraftLoad.fatal`. Code the web build runs must not call `std::env::temp_dir`,
 `std::time::{Instant, SystemTime}::now`, `std::thread::sleep`/`spawn` or `std::process::id`: they
