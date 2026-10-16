@@ -49,6 +49,6 @@ Kept as they were (internal names, changing them is a separate step):
 - [x] README and WORDNEXT.md
 - [x] Own app icon: the WordNext monogram on a film frame (`assets/app-icon/`), replacing the upstream owl
 - [x] Spanish (Spain, tuteo) catalogue complete; the app follows the system language
-- [x] Web page (es/en) and browser build: `vercel.json`, `packaging/vercel/`; Vercel project + domain `films.wordnext.tech` still to connect
+- [x] Web page (es/en) and browser build: `vercel.json`, `packaging/vercel/`; Vercel project `wordnext-films` (production branch `main`) with the domain `films.wordnext.tech`
 - [x] Desktop installers workflow `.github/workflows/instaladores.yml` (signs when the secrets exist, unsigned otherwise; publishes on a `v*` tag)
 - [ ] First release
