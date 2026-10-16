@@ -32,7 +32,7 @@ Design principles:
      codecs/containers: isobmff · matroska · mxf · cfb · mpegts · ogg · h264 · h264enc · hevc · vp9 · av1 · mpeg2v · prores · dnx · apv · dng · aac · ac3 · mpa · opus
 ```
 
-Crates are named `filmcraft-<dir>` (`crates/time` is `filmcraft-time`). The apps are `filmcraft`
+Crates are named `wordnext-films-<dir>` (`crates/time` is `filmcraft-time`). The apps are `filmcraft`
 and `filmcraft-cli`.
 
 | Crate | Layer | Purpose |

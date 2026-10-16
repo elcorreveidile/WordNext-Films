@@ -1,0 +1,104 @@
+/* WordNext PDF landing page. Static, no JavaScript. Green is the WordNext "Hecho en Andalucía" accent. */
+:root {
+  color-scheme: light dark;
+  --bg: #fbfbfa;
+  --surface: #ffffff;
+  --text: #17181a;
+  --muted: #5a5f66;
+  --line: #e3e4e6;
+  --accent: #008a4b;
+  --accent-ink: #006b39;
+  --on-accent: #ffffff;
+  --tint: #e8f5ee;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111214;
+    --surface: #19191c;
+    --text: #ecedee;
+    --muted: #a3a8af;
+    --line: #2b2d31;
+    --accent: #38b06a;
+    --accent-ink: #5fcb8b;
+    --on-accent: #06210f;
+    --tint: #14231b;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 17px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+}
+a { color: var(--accent-ink); }
+a:hover { text-decoration-thickness: 2px; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+.wrap { max-width: 68rem; margin: 0 auto; padding: 0 16px; }
+
+header.top { border-bottom: 1px solid var(--line); background: var(--bg); }
+header.top .wrap { display: flex; align-items: center; gap: 16px; min-height: 64px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--text); text-decoration: none; }
+.brand img { width: 32px; height: 32px; border-radius: 8px; }
+.top nav { margin-left: auto; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.top nav a:not(.btn) { color: var(--muted); text-decoration: none; }
+.top nav a:not(.btn):hover { color: var(--text); text-decoration: underline; }
+
+.btn {
+  display: inline-block; padding: 10px 20px; border-radius: 10px; font-weight: 600; text-decoration: none;
+  background: var(--accent); color: var(--on-accent); border: 2px solid var(--accent);
+}
+.btn:hover { filter: brightness(1.06); }
+.btn.ghost { background: transparent; color: var(--text); border-color: var(--line); }
+.btn.ghost:hover { border-color: var(--accent); }
+
+.hero { padding-block: 72px 56px; }
+.hero h1 { font-size: clamp(2rem, 5vw, 3.4rem); line-height: 1.12; margin: 0 0 16px; letter-spacing: -0.02em; max-width: 22ch; }
+.hero p.lead { font-size: 1.2rem; color: var(--muted); max-width: 40rem; margin: 0 0 28px; }
+.hero .actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.hero .note { margin: 18px 0 0; color: var(--muted); font-size: 0.95rem; }
+.hero .note + .note { margin-top: 6px; }
+
+section { padding: 48px 0; border-top: 1px solid var(--line); }
+section h2 { font-size: 1.7rem; line-height: 1.2; margin: 0 0 8px; letter-spacing: -0.01em; }
+section .sub { color: var(--muted); margin: 0 0 28px; max-width: 42rem; }
+
+.grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
+.card h3 { margin: 0 0 6px; font-size: 1.1rem; }
+.card p { margin: 0; color: var(--muted); }
+
+ol.steps { list-style: none; counter-reset: s; margin: 0; padding: 0; display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
+ol.steps li { counter-increment: s; background: var(--tint); border-radius: 14px; padding: 20px 20px 20px 64px; position: relative; }
+ol.steps li::before {
+  content: counter(s); position: absolute; left: 20px; top: 18px; width: 30px; height: 30px; border-radius: 50%;
+  background: var(--accent); color: var(--on-accent); font-weight: 700; display: grid; place-items: center;
+}
+ol.steps strong { display: block; }
+ol.steps span { color: var(--muted); }
+
+ul.plain { margin: 0; padding-left: 1.2rem; }
+ul.plain li { margin: 6px 0; }
+.two { display: grid; gap: 32px; grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); }
+
+footer { border-top: 1px solid var(--line); padding: 32px 0 48px; color: var(--muted); font-size: 0.95rem; }
+footer .wrap { display: flex; flex-wrap: wrap; gap: 12px 24px; justify-content: space-between; }
+footer a { color: var(--muted); }
+footer a:hover { color: var(--text); }
+footer p { margin: 0; }
+
+@media (max-width: 640px) {
+  /* One tidy row on phones: brand, language, open. The section links are a scroll away anyway. */
+  .top nav a.sec { display: none; }
+  header.top .wrap { min-height: 60px; gap: 6px 10px; padding-block: 8px; }
+  .top nav { gap: 12px; flex-wrap: nowrap; margin-left: auto; }
+  .top nav .btn { padding: 8px 14px; white-space: nowrap; }
+  .brand { white-space: nowrap; }
+}
+@media (max-width: 520px) {
+  .hero { padding-block: 40px 32px; }
+  .hero .actions .btn { flex: 1 1 100%; text-align: center; }
+  section { padding: 36px 0; }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }

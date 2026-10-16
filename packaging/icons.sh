@@ -11,7 +11,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DIR="$ROOT/assets/app-icon"
 SVG="$DIR/filmcraft.svg"
-APP_ID="ai.storyteller.filmcraft"
+APP_ID="tech.wordnext.films"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
@@ -25,7 +25,7 @@ grep -q 'viewBox="-62.14' "$MAC" || { echo "error: unexpected viewBox in $SVG" >
 
 render() { resvg -w "$2" -h "$2" "$1" "$3" </dev/null; }
 
-render "$SVG" 1024 "$DIR/filmcraft-1024.png"
+render "$SVG" 1024 "$DIR/wordnext-films-1024.png"
 # Runtime window/Dock icon on macOS (apps/filmcraft/src/main.rs embeds it).
 render "$MAC" 512 "$DIR/filmcraft-macos-512.png"
 
