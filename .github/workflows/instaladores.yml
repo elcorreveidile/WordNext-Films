@@ -1,0 +1,239 @@
+name: Instaladores
+
+# Instaladores de escritorio de WordNext Films (macOS, Windows, Linux).
+#
+# Firma de forma automática SI los secretos están en el repositorio; si no, genera los mismos
+# instaladores SIN firmar (y lo dice en el resumen de cada trabajo). No hace falta tocar nada
+# cuando se añaden los secretos: la siguiente ejecución ya firma.
+#
+# Secretos (Settings → Secrets and variables → Actions), ver WORDNEXT.md:
+#   macOS    APPLE_CERTIFICATE, APPLE_CERTIFICATE_PASSWORD, APPLE_ID, APPLE_PASSWORD, APPLE_TEAM_ID
+#            (KEYCHAIN_PASSWORD es opcional)
+#   Windows  WINDOWS_CERTIFICATE + WINDOWS_CERTIFICATE_PASSWORD
+#            o las seis AZURE_* de Azure Trusted Signing
+#
+# Es independiente de release.yml (heredado del proyecto original): aquel exige los secretos en la
+# rama `release`, usa ejecutores de pago y publica en otra organización.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Versión de prueba, solo X.Y.Z sin sufijo, p. ej. 0.8.1 (vacío: la de Cargo.toml)"
+        type: string
+        default: ""
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: instaladores-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  # Las fuentes japonesas (UI de reserva y texto japonés en títulos) son opcionales: sin ellas
+  # el build sigue adelante, solo que sin esas fuentes.
+  CRAFT_FONTS_REF: abb83316d96aa59c1cf64784289e378fe9fa5695
+
+jobs:
+  macos:
+    name: macOS (universal)
+    runs-on: macos-latest
+    env:
+      VERSION: ${{ inputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fuentes (opcional)
+        id: fonts
+        continue-on-error: true
+        uses: actions/checkout@v4
+        with:
+          repository: storytold/craft-fonts
+          ref: ${{ env.CRAFT_FONTS_REF }}
+          path: craft-fonts
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin, x86_64-apple-darwin
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: instaladores-macos
+      - name: Versión de prueba
+        if: env.VERSION != ''
+        run: cargo xtask version set "$VERSION"
+      - name: Importar certificado (si hay)
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: packaging/macos/import-cert.sh
+      - name: Empaquetar (firma y notariza si hay secretos)
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          CRAFT_FONTS_DIR: ${{ steps.fonts.outcome == 'success' && format('{0}/craft-fonts', github.workspace) || '' }}
+        run: packaging/macos/package.sh --arch universal
+      - name: Estado de la firma
+        if: always()
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          if [ -n "${MACOS_SIGN_IDENTITY:-}" ]; then
+            echo "### macOS: firmado con Developer ID" >> "$GITHUB_STEP_SUMMARY"
+            if [ -n "$APPLE_ID" ] && [ -n "$APPLE_PASSWORD" ] && [ -n "$APPLE_TEAM_ID" ]; then
+              echo "Notarizado." >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "Sin notarizar: faltan APPLE_ID, APPLE_PASSWORD o APPLE_TEAM_ID." >> "$GITHUB_STEP_SUMMARY"
+            fi
+          else
+            echo "### macOS: SIN FIRMAR (firma ad-hoc)" >> "$GITHUB_STEP_SUMMARY"
+            echo "macOS avisará al abrirlo. Añade los secretos APPLE_* para firmar y notarizar." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: instaladores-macos
+          path: dist/release/*
+          if-no-files-found: error
+      - name: Borrar el llavero temporal
+        if: always()
+        run: |
+          if [ -n "${MACOS_KEYCHAIN:-}" ]; then security delete-keychain "$MACOS_KEYCHAIN" || true; fi
+
+  windows:
+    name: Windows (${{ matrix.arch }})
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { arch: x64, target: x86_64-pc-windows-msvc }
+          - { arch: arm64, target: aarch64-pc-windows-msvc }
+    env:
+      VERSION: ${{ inputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fuentes (opcional)
+        id: fonts
+        continue-on-error: true
+        uses: actions/checkout@v4
+        with:
+          repository: storytold/craft-fonts
+          ref: ${{ env.CRAFT_FONTS_REF }}
+          path: craft-fonts
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: instaladores-windows-${{ matrix.arch }}
+      - name: Versión de prueba
+        if: env.VERSION != ''
+        shell: bash
+        run: cargo xtask version set "$VERSION"
+      - name: Instalar WiX
+        run: dotnet tool install --global wix --version 5.0.2
+      - name: Empaquetar (firma si hay secretos)
+        shell: pwsh
+        env:
+          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_SIGNING_ENDPOINT: ${{ secrets.AZURE_SIGNING_ENDPOINT }}
+          AZURE_SIGNING_ACCOUNT: ${{ secrets.AZURE_SIGNING_ACCOUNT }}
+          AZURE_CERT_PROFILE: ${{ secrets.AZURE_CERT_PROFILE }}
+          CRAFT_FONTS_DIR: ${{ steps.fonts.outcome == 'success' && format('{0}/craft-fonts', github.workspace) || '' }}
+        run: ./packaging/windows/package.ps1 -Arch ${{ matrix.arch }}
+      - name: Estado de la firma
+        if: always()
+        shell: bash
+        env:
+          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+        run: |
+          if [ -n "$WINDOWS_CERTIFICATE" ] || [ -n "$AZURE_CLIENT_SECRET" ]; then
+            echo "### Windows ${{ matrix.arch }}: firmado" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "### Windows ${{ matrix.arch }}: SIN FIRMAR" >> "$GITHUB_STEP_SUMMARY"
+            echo "SmartScreen avisará. Añade WINDOWS_CERTIFICATE(+_PASSWORD) o los AZURE_* para firmar." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: instaladores-windows-${{ matrix.arch }}
+          path: dist/release/*
+          if-no-files-found: error
+
+  linux:
+    name: Linux (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { arch: x86_64, runner: ubuntu-22.04, deb: amd64 }
+          - { arch: aarch64, runner: ubuntu-22.04-arm, deb: arm64 }
+    env:
+      VERSION: ${{ inputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fuentes (opcional)
+        id: fonts
+        continue-on-error: true
+        uses: actions/checkout@v4
+        with:
+          repository: storytold/craft-fonts
+          ref: ${{ env.CRAFT_FONTS_REF }}
+          path: craft-fonts
+      - uses: storytold/craft-common-actions/actions/install-linux-deps@main
+        with:
+          deb-arch: ${{ matrix.deb }}
+          nfpm-version: "2.47.0"
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: instaladores-linux-${{ matrix.arch }}
+      - name: Versión de prueba
+        if: env.VERSION != ''
+        run: cargo xtask version set "$VERSION"
+      - name: Empaquetar (AppImage, deb, rpm, tar.gz)
+        env:
+          CRAFT_FONTS_DIR: ${{ steps.fonts.outcome == 'success' && format('{0}/craft-fonts', github.workspace) || '' }}
+        run: packaging/linux/package.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: instaladores-linux-${{ matrix.arch }}
+          path: dist/release/*
+          if-no-files-found: error
+
+  publicar:
+    name: Publicar en GitHub Releases
+    # Solo con una etiqueta v*; las ejecuciones manuales dejan los instaladores como artefactos.
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [macos, windows, linux]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: instaladores-*
+          path: dist
+          merge-multiple: true
+      - name: Crear o actualizar la release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          ls -l dist
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/* --clobber --repo "$GITHUB_REPOSITORY"
+          else
+            gh release create "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --title "WordNext Films $TAG" --generate-notes
+          fi

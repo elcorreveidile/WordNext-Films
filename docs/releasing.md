@@ -6,7 +6,7 @@ the web build, and creates or updates a **draft**
 GitHub Release named `FilmCraft v<version>`. Nobody sees a draft until a maintainer publishes it.
 
 User-facing names say **FilmCraft**. Files, binaries and ids stay lowercase
-(`filmcraft-<version>-<platform>-<arch>.<ext>`, `ai.storyteller.filmcraft`).
+(`wordnext-films-<version>-<platform>-<arch>.<ext>`, `tech.wordnext.films`).
 
 ## Cutting a release
 
@@ -44,16 +44,16 @@ signing jobs are refused, and the draft-release job, which needs them, is skippe
 
 | Platform | Artifacts | Built on |
 |---|---|---|
-| macOS 11+ (universal: Apple silicon and Intel) | `filmcraft-<v>-macos-universal.dmg`, `filmcraft-cli-<v>-macos-universal.zip` | `macos-15` |
-| Windows x64 | `filmcraft-<v>-windows-x64.msi`, `filmcraft-<v>-windows-x64-portable.zip` | `windows-latest` |
-| Windows x86 (32-bit) | `filmcraft-<v>-windows-x86.msi`, `filmcraft-<v>-windows-x86-portable.zip` | `windows-latest` |
-| Windows on ARM64 | `filmcraft-<v>-windows-arm64.msi`, `filmcraft-<v>-windows-arm64-portable.zip` | `windows-latest` (cross-compiled) |
-| Linux x86_64 | `filmcraft-<v>-linux-x86_64.{AppImage,deb,rpm,tar.gz}` | `ubuntu-22.04` |
-| Linux aarch64 | `filmcraft-<v>-linux-aarch64.{AppImage,deb,rpm,tar.gz}` | `ubuntu-22.04-arm` |
-| Linux riscv64 | `filmcraft-<v>-linux-riscv64.tar.gz` | `ubuntu-24.04`, cross-compiled (glibc 2.39+; CLI smoke-tested under QEMU) |
-| AppImage updates | `filmcraft-<v>-linux-{x86_64,aarch64}.AppImage.zsync` | with the AppImage |
-| Flatpak | `filmcraft-<v>-linux-x86_64.flatpak`, `filmcraft-<v>-linux-aarch64.flatpak` | `ubuntu-24.04`, `ubuntu-24.04-arm` (repackaged Linux tarball) |
-| FreeBSD 14 x86_64 | `filmcraft-<v>-freebsd-x86_64.tar.gz` | FreeBSD 14.3 VM on `ubuntu-latest` |
+| macOS 11+ (universal: Apple silicon and Intel) | `wordnext-films-<v>-macos-universal.dmg`, `filmcraft-cli-<v>-macos-universal.zip` | `macos-15` |
+| Windows x64 | `wordnext-films-<v>-windows-x64.msi`, `wordnext-films-<v>-windows-x64-portable.zip` | `windows-latest` |
+| Windows x86 (32-bit) | `wordnext-films-<v>-windows-x86.msi`, `wordnext-films-<v>-windows-x86-portable.zip` | `windows-latest` |
+| Windows on ARM64 | `wordnext-films-<v>-windows-arm64.msi`, `wordnext-films-<v>-windows-arm64-portable.zip` | `windows-latest` (cross-compiled) |
+| Linux x86_64 | `wordnext-films-<v>-linux-x86_64.{AppImage,deb,rpm,tar.gz}` | `ubuntu-22.04` |
+| Linux aarch64 | `wordnext-films-<v>-linux-aarch64.{AppImage,deb,rpm,tar.gz}` | `ubuntu-22.04-arm` |
+| Linux riscv64 | `wordnext-films-<v>-linux-riscv64.tar.gz` | `ubuntu-24.04`, cross-compiled (glibc 2.39+; CLI smoke-tested under QEMU) |
+| AppImage updates | `wordnext-films-<v>-linux-{x86_64,aarch64}.AppImage.zsync` | with the AppImage |
+| Flatpak | `wordnext-films-<v>-linux-x86_64.flatpak`, `wordnext-films-<v>-linux-aarch64.flatpak` | `ubuntu-24.04`, `ubuntu-24.04-arm` (repackaged Linux tarball) |
+| FreeBSD 14 x86_64 | `wordnext-films-<v>-freebsd-x86_64.tar.gz` | FreeBSD 14.3 VM on `ubuntu-latest` |
 | Web | `filmcraft-web-<v>.zip`, a static site (see [`packaging/web/README.md`](../packaging/web/README.md)) | `ubuntu-latest` |
 
 `filmcraft --version` and `filmcraft-cli --version` print the version from `Cargo.toml`.
@@ -70,7 +70,7 @@ deliberately, in every job at once.
 `packaging/macos/package.sh` builds `aarch64-apple-darwin` and `x86_64-apple-darwin` with
 `MACOSX_DEPLOYMENT_TARGET=11.0`, joins them with `lipo` and assembles `FilmCraft.app`:
 
-- `Info.plist` is generated from `Info.plist.in` (bundle id `ai.storyteller.filmcraft`, the
+- `Info.plist` is generated from `Info.plist.in` (bundle id `tech.wordnext.films`, the
   version and the build commit).
 - **Signing** uses the hardened runtime and a secure timestamp, with the entitlements in
   `entitlements.plist`. The Developer ID certificate is imported into a temporary keychain by
@@ -133,23 +133,23 @@ release. The job checks both with `--appimage-updateinformation` and `test -s`.
 
 **Flatpak.** The `flatpak` jobs (x86_64 on `ubuntu-24.04`, aarch64 on `ubuntu-24.04-arm`) run
 `packaging/linux/flatpak-bundle.sh` on the Linux job's tarball: it installs the binaries with
-`packaging/linux/flatpak/ai.storyteller.filmcraft.bundle.yml` into a single-file bundle,
-`filmcraft-<v>-linux-<arch>.flatpak` (no Rust build, so it takes a minute), then installs it and
+`packaging/linux/flatpak/tech.wordnext.films.bundle.yml` into a single-file bundle,
+`wordnext-films-<v>-linux-<arch>.flatpak` (no Rust build, so it takes a minute), then installs it and
 runs `filmcraft-cli --version` in the sandbox. Users install it with
 `flatpak install --user <file>`; the freedesktop runtime comes from Flathub.
-`packaging/linux/flatpak/ai.storyteller.filmcraft.yml` is the from-source manifest for a Flathub
+`packaging/linux/flatpak/tech.wordnext.films.yml` is the from-source manifest for a Flathub
 submission (its header says how to build it). Both manifests must keep the same runtime and
 `finish-args`, and install the same programs: the app and `filmcraft-cli`, which runs the
 headless commands and the MCP server in the sandbox
-(`flatpak run --command=filmcraft-cli ai.storyteller.filmcraft mcp`). packaging-lint checks this.
+(`flatpak run --command=filmcraft-cli tech.wordnext.films mcp`). packaging-lint checks this.
 
 ### FreeBSD
 
 GitHub has no FreeBSD runners, so the `freebsd` job builds in a FreeBSD 14.3 VM
 ([vmactions/freebsd-vm](https://github.com/vmactions/freebsd-vm), pinned by commit) on
 `ubuntu-latest`. `packaging/freebsd/package.sh` builds both programs and packs a
-`/usr/local`-style tree as `filmcraft-<v>-freebsd-x86_64.tar.gz`; install it with
-`tar -xzf filmcraft-<v>-freebsd-x86_64.tar.gz --strip-components 1 -C /usr/local`. The build needs
+`/usr/local`-style tree as `wordnext-films-<v>-freebsd-x86_64.tar.gz`; install it with
+`tar -xzf wordnext-films-<v>-freebsd-x86_64.tar.gz --strip-components 1 -C /usr/local`. The build needs
 the packages listed in the job (winit/wgpu, GTK 3 for the file dialogs, fontconfig, and
 `alsa-lib` for audio through cpal). `.github/workflows/freebsd.yml` builds and packages the same
 way nightly, so a FreeBSD break shows up before a release. `package.sh --dry-run` checks the

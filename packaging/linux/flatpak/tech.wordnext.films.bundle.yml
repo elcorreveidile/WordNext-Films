@@ -1,7 +1,7 @@
 # Flatpak manifest for the single-file bundle attached to every GitHub release
-# (filmcraft-<version>-linux-<arch>.flatpak). Build it with packaging/linux/flatpak-bundle.sh.
+# (wordnext-films-<version>-linux-<arch>.flatpak). Build it with packaging/linux/flatpak-bundle.sh.
 #
-# It repackages the release's own Linux tarball (filmcraft-<version>-linux-<arch>.tar.gz,
+# It repackages the release's own Linux tarball (wordnext-films-<version>-linux-<arch>.tar.gz,
 # built on Ubuntu 22.04 by package.sh) instead of compiling Rust inside flatpak-builder: no
 # network and no vendored crate sources during the build, a few seconds instead of 20+ minutes,
 # and byte-for-byte the same binaries as the AppImage/deb/rpm. The script unpacks the tarball
@@ -10,9 +10,9 @@
 # ALSA routes through PulseAudio/PipeWire), and the GPU driver comes from its
 # org.freedesktop.Platform.GL extension.
 #
-# ai.storyteller.filmcraft.yml (same directory) is the from-source manifest for Flathub. Keep
+# tech.wordnext.films.yml (same directory) is the from-source manifest for Flathub. Keep
 # runtime-version and finish-args identical in both (packaging-lint checks this).
-id: ai.storyteller.filmcraft
+id: tech.wordnext.films
 runtime: org.freedesktop.Platform
 runtime-version: '25.08'
 sdk: org.freedesktop.Sdk
@@ -39,7 +39,7 @@ finish-args:
   - --filesystem=/run/media
   - --filesystem=/mnt
   # Deliberately not granted: network (the optional --control server listens on 127.0.0.1 in
-  # the sandbox; `flatpak override --user --share=network ai.storyteller.filmcraft` exposes it
+  # the sandbox; `flatpak override --user --share=network tech.wordnext.films` exposes it
   # to host agents) and host-wide filesystem access.
 modules:
   - name: filmcraft
@@ -47,12 +47,12 @@ modules:
     build-commands:
       - install -Dm755 bin/filmcraft /app/bin/filmcraft
       - install -Dm755 bin/filmcraft-cli /app/bin/filmcraft-cli
-      - install -Dm644 share/applications/ai.storyteller.filmcraft.desktop /app/share/applications/ai.storyteller.filmcraft.desktop
+      - install -Dm644 share/applications/tech.wordnext.films.desktop /app/share/applications/tech.wordnext.films.desktop
       # The same MIME file the deb/rpm install: it defines the .fcproj project type (the
       # runtime's shared-mime-info already knows the video and audio formats).
-      - install -Dm644 share/mime/packages/ai.storyteller.filmcraft.xml /app/share/mime/packages/ai.storyteller.filmcraft.xml
+      - install -Dm644 share/mime/packages/tech.wordnext.films.xml /app/share/mime/packages/tech.wordnext.films.xml
       # Already has the release's version and date substituted by package.sh.
-      - install -Dm644 share/metainfo/ai.storyteller.filmcraft.metainfo.xml /app/share/metainfo/ai.storyteller.filmcraft.metainfo.xml
+      - install -Dm644 share/metainfo/tech.wordnext.films.metainfo.xml /app/share/metainfo/tech.wordnext.films.metainfo.xml
       - mkdir -p /app/share/icons /app/share/doc && cp -R share/icons/hicolor /app/share/icons/ && cp -R share/doc/filmcraft /app/share/doc/
     sources:
       - type: dir
